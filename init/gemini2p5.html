@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AJAYU: Dualism</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            color: #fff;
+            font-family: monospace;
+        }
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 350px;
+            text-align: center;
+            z-index: 10;
+        }
+        .balance-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+        }
+        #bar-display {
+            font-family: monospace;
+            white-space: pre;
+            font-weight: bold;
+        }
+        #center-msg {
+            position: absolute;
+            top: 50%; width: 100%;
+            text-align: center;
+            transform: translateY(-50%);
+            display: none;
+            background: #000;
+            border: 1px dashed #fff;
+            padding: 20px 0;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <div style="font-size:12px; margin-bottom:5px;">
+            <span style="color:#FFFF00">CHACHA (SUN)</span> 
+            <------ BALANCE ------> 
+            <span style="color:#00FFFF">WARMI (MOON)</span>
+        </div>
+        <div class="balance-bar">
+            <span id="bar-display">[||||||||||| | |||||||||||]</span>
+        </div>
+    </div>
+    
+    <div id="center-msg">
+        <h1 id="end-title">IMBALANCE DETECTED</h1>
+        <p id="end-reason">...</p>
+        <button onclick="location.reload()" style="background:#000; color:#fff; border:1px solid #fff; padding:10px; cursor:pointer;">MEDITATE AGAIN</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { AsciiEffect } from 'three/addons/effects/AsciiEffect.js';
+
+        let scene, camera, renderer, effect;
+        let player;
+        let objects = [];
+        let balance = 0; // -10 to 10. <0 is Sun, >0 is Moon.
+        let isRunning = true;
+        let isPaused = false;
+        
+        const keys = {ArrowLeft:false, ArrowRight:false, ArrowUp:false, ArrowDown:false};
+
+        window.addEventListener('message', (e) => {
+             if (e.data && e.data.type === 'PAUSE_GAME') {
+                 isPaused = e.data.payload;
+             }
+        });
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0,0,0);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
+            camera.position.set(0, 0, 8);
+            
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Color ASCII
+            effect = new AsciiEffect(renderer, ' .:-+*=%@#', { invert: true, color: true });
+            effect.setSize(window.innerWidth, window.innerHeight);
+            effect.domElement.style.backgroundColor = 'black';
+            document.body.appendChild(effect.domElement);
+            
+            // Player - White
+            player = new THREE.Mesh(
+                new THREE.SphereGeometry(0.5, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffffff })
+            );
+            scene.add(player);
+            
+            // Stars
+            const stars = new THREE.Points(
+                new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(300).map(()=>(Math.random()-0.5)*50), 3)),
+                new THREE.PointsMaterial({size:0.1, color:0x555555})
+            );
+            scene.add(stars);
+            
+            window.addEventListener('keydown', e => keys[e.key] = true);
+            window.addEventListener('keyup', e => keys[e.key] = false);
+            window.addEventListener('resize', onResize);
+            
+            updateHUD();
+            animate();
+        }
+        
+        function onResize() {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            effect.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        function spawn() {
+            const isSun = Math.random() > 0.5;
+            // Sun = Box (Yellow), Moon = Icosa (Cyan)
+            const geo = isSun ? new THREE.BoxGeometry(0.8, 0.8, 0.8) : new THREE.IcosahedronGeometry(0.6);
+            const color = isSun ? 0xFFFF00 : 0x00FFFF;
+            const mat = new THREE.MeshBasicMaterial({ color: color });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            mesh.position.set((Math.random()-0.5)*12, (Math.random()-0.5)*8, -20);
+            mesh.userData = { type: isSun ? 'sun' : 'moon' };
+            
+            scene.add(mesh);
+            objects.push(mesh);
+        }
+        
+        function updateHUD() {
+            // Visualize balance as a string bar
+            let str = "[";
+            for(let i=-10; i<=10; i++) {
+                if (i === Math.round(balance)) str += "|"; 
+                else str += ".";
+            }
+            str += "]";
+            const el = document.getElementById('bar-display');
+            el.innerText = str;
+            
+            // Change color of bar based on balance side
+            if(balance < -2) el.style.color = '#FFFF00';
+            else if(balance > 2) el.style.color = '#00FFFF';
+            else el.style.color = '#FFFFFF';
+        }
+
+        function endGame(reason) {
+            isRunning = false;
+            document.getElementById('center-msg').style.display = 'block';
+            document.getElementById('end-reason').innerText = reason;
+        }
+        
+        function update() {
+            if(!isRunning || isPaused) return;
+            
+            // Slow Move
+            if(keys.ArrowLeft) player.position.x -= 0.1;
+            if(keys.ArrowRight) player.position.x += 0.1;
+            if(keys.ArrowUp) player.position.y += 0.1;
+            if(keys.ArrowDown) player.position.y -= 0.1;
+            
+            // Spawn
+            if(Math.random() < 0.02) spawn();
+            
+            // Objects
+            for(let i=objects.length-1; i>=0; i--) {
+                const o = objects[i];
+                o.position.z += 0.05; // Slow drift
+                o.rotation.x += 0.02;
+                o.rotation.y += 0.02;
+                
+                if(o.position.distanceTo(player.position) < 1.2) {
+                    if(o.userData.type === 'sun') balance -= 1; // Left
+                    else balance += 1; // Right
+                    
+                    updateHUD();
+                    
+                    if (balance <= -10) endGame("Too much Action (Sun). You burned out.");
+                    if (balance >= 10) endGame("Too much Receptivity (Moon). You faded away.");
+                    
+                    scene.remove(o);
+                    objects.splice(i, 1);
+                    continue;
+                }
+                
+                if(o.position.z > 5) {
+                    scene.remove(o);
+                    objects.splice(i, 1);
+                }
+            }
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            effect.render(scene, camera);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
