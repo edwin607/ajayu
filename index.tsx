@@ -173,38 +173,44 @@ const styles = {
 
 const PROMPTS = {
   gemini2p5: `
-Create a TUI (Text User Interface) 3D web experience in a single HTML file.
+Create a TUI (Text User Interface) 3D web aesthetic experience in a single HTML file.
 
 ### Theme: "Ajayu: Dualism"
-A slow, meditative experience about balancing two forces: Chacha (Sun/Action) and Warmi (Moon/Receptivity).
+A slow, meditative visual experience exploring the dance between two forces: Chacha (Sun/Light) and Warmi (Moon/Shadow).
 
 ### Visual Style
-*   **Monochrome ASCII:** Classic terminal look.
-*   **Atmosphere:** Slow, drifting particles.
+*   **Monochrome ASCII:** Classic terminal aesthetics with organic motion.
+*   **Atmosphere:** Slow, drifting particles that pulse and breathe.
+*   **Movement:** Gentle oscillations between light and dark patterns.
 
-### Gameplay
-*   **Goal:** Collect Sun and Moon symbols to keep a balance meter in the center.
-*   **Fail State:** If one side fills completely, the experience ends with a wisdom message.
+### Experience
+*   **No objectives or goals** - pure contemplation.
+*   Sun and Moon symbols drift across the screen, creating evolving patterns.
+*   The "balance" is visual only - watch the interplay of opposing forces.
+*   Subtle animations respond to mouse movement (optional).
+*   Continuous, endless loop - no fail states or endings.
 `,
   gemini3: `
-Create a Scientific Assessment Tool in a single HTML file using TUI aesthetics.
+Create a Generative ASCII Art experience in a single HTML file using TUI aesthetics.
 
-### Theme: "COGNITIVE FLOW ASSESSMENT"
-A tool to measure Visuomotor Synchronization using Optic Flow fields.
+### Theme: "FLOW FIELD MEDITATION"
+A mesmerizing visual field of characters that shift and flow in organic patterns.
 
-### Core Mechanics
-*   **The Field:** A grid of ASCII characters that shift based on a Perlin noise vector field.
-*   **Interaction:** The user moves their mouse.
-*   **The Test:** Calculate the "Dot Product" alignment between the Mouse Velocity Vector and the local Flow Vector.
-*   **Feedback:** 
-    *   **Gold (Coherence):** Moving WITH the flow.
-    *   **Red (Dissonance):** Moving AGAINST the flow.
-    *   **Blue (Entropy):** Idle/Background state.
-*   **Metrics:** HUD showing "Coherence %", "Vector Delta", and "Pattern Stability".
+### Visual Design
+*   **The Field:** A dense grid of ASCII characters driven by Perlin noise vector fields.
+*   **Motion:** Characters rotate, shift, and pulse based on underlying flow patterns.
+*   **Mouse Interaction:** Cursor subtly influences the flow field, creating ripples and distortions.
+*   **Color Palette:**
+    *   **Gold (#FFD700):** High energy areas / flow convergence
+    *   **Blue (#1E90FF):** Low energy / calm zones
+    *   **Red (#FF4500):** Turbulent regions / flow divergence
+    *   Gradients between states create smooth transitions.
 
-### Visual Style
-*   **Scientific/Cyberpunk:** High density ASCII.
-*   **Data Driven:** Real-time graphs or numbers in the HUD.
+### Aesthetic Focus
+*   **No scores, no metrics** - pure visual poetry.
+*   Optional minimal HUD showing flow intensity or pattern name (e.g. "Vortex", "Drift", "Stillness").
+*   Continuous evolution - patterns emerge and dissolve organically.
+*   Hypnotic, meditative quality - something to get lost in.
 `
 };
 
@@ -216,7 +222,7 @@ function App() {
   
   const [gameHtml, setGameHtml] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingText, setLoadingText] = useState('INITIALIZING NEURAL LINK...');
+  const [loadingText, setLoadingText] = useState('GENERATING PATTERNS...');
   
   const htmlCache = useRef<{ [key: string]: string }>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -225,7 +231,7 @@ function App() {
     if (activeModel === model) return;
     setGameHtml(null);
     setIsLoading(true);
-    setLoadingText(model === 'gemini3' ? 'CALIBRATING SENSORS...' : 'LOADING LEGACY MODULE...');
+    setLoadingText(model === 'gemini3' ? 'WEAVING FLOW FIELD...' : 'AWAKENING DUALISM...');
     setActiveModel(model);
   };
 
@@ -277,9 +283,9 @@ function App() {
 
   const handleRemixAction = async (modification: string) => {
     if (!gameHtml) return;
-    
+
     setIsLoading(true);
-    setLoadingText('RECONFIGURING TEST PARAMETERS...');
+    setLoadingText('TRANSFORMING AESTHETIC...');
     setShowRemix(false); 
 
     try {
@@ -288,11 +294,12 @@ function App() {
         const currentPrompt = PROMPTS[activeModel as keyof typeof PROMPTS];
 
         const systemInstruction = `
-You are a Creative Coder specializing in ASCII/TUI 3D web experiences.
-Your task is to modify the provided code based on the user's remix request.
+You are a Creative Coder specializing in ASCII/TUI generative art and aesthetic experiences.
+Your task is to modify the provided code based on the user's transformation request.
 Output ONLY the raw HTML code.
 Ensure the visual style remains ASCII/Text-based.
-The theme is Scientific/Data Visualization.
+The theme is meditative, contemplative visual experiences - NOT games or tests.
+Focus on beauty, atmosphere, and hypnotic motion. Remove any scores, objectives, or competitive elements.
 IMPORTANT: Preserve the following script snippet exactly as it is:
 <script>
 window.addEventListener('message', (e) => {
@@ -363,35 +370,35 @@ window.addEventListener('message', (e) => {
       {/* Header */}
       <div style={styles.header}>
         <div style={{display:'flex', alignItems:'center'}}>
-           <div style={styles.headerTitle}>COGNITIVE LABS</div>
+           <div style={styles.headerTitle}>AJAYU: AESTHETIC ENGINE</div>
            <div style={styles.buttonGroup}>
-            <button 
+            <button
                 style={styles.button(activeModel === 'gemini2p5')}
                 onClick={() => switchModel('gemini2p5')}
             >
-                [ LEGACY: DUALISM ]
+                [ DUALISM ]
             </button>
-            <button 
+            <button
                 style={styles.button(activeModel === 'gemini3')}
                 onClick={() => switchModel('gemini3')}
             >
-                [ TEST: FLOW_SYNC ]
+                [ FLOW FIELD ]
             </button>
             </div>
         </div>
 
         <div style={styles.buttonGroup}>
-          <button 
+          <button
             style={styles.button(showPrompt)}
             onClick={() => setShowPrompt(true)}
           >
-            [ SPECS ]
+            [ VISION ]
           </button>
-          <button 
+          <button
             style={styles.button(showRemix)}
             onClick={() => setShowRemix(true)}
           >
-            [ MODIFY_VARS ]
+            [ TRANSFORM ]
           </button>
         </div>
       </div>
@@ -402,10 +409,10 @@ window.addEventListener('message', (e) => {
           <div style={styles.loadingContainer}>
             <div style={styles.asciiLoader}>
 {`
- [ LOADING TEST ASSETS ] 
-   ...    ...    ...
-  .   .  .   .  .   .
-  |---|  |---|  |---|
+ [ WEAVING PATTERNS ]
+   ∞    ∞    ∞
+  ·   · ·   · ·   ·
+  ~~~~~  ~~~~~  ~~~~~
   '   '  '   '  '   '
 `}
             </div>
@@ -430,20 +437,21 @@ window.addEventListener('message', (e) => {
       {showDisclaimer && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
-            <div style={styles.modalHeader}>:: SUBJECT INSTRUCTION ::</div>
+            <div style={styles.modalHeader}>:: WELCOME TO AJAYU ::</div>
             <div style={styles.modalSub}>
-              <p><strong>[ TEST ]</strong> Visuomotor Pattern Synchronization.</p>
-              <p><strong>[ OBJECTIVE ]</strong> Align your cursor movement with the visual flow field.</p>
-              <p><strong>[ INDICATORS ]</strong></p>
+              <p><strong>[ EXPERIENCE ]</strong> Generative ASCII Flow Field</p>
+              <p><strong>[ INTENTION ]</strong> Pure visual meditation - no goals, no scores.</p>
+              <p><strong>[ VISUAL LANGUAGE ]</strong></p>
               <ul style={{listStyleType: 'none', paddingLeft: '10px'}}>
-                <li style={{color:'#FFD700'}}>■ GOLD: High Coherence (Sync Achieved)</li>
-                <li style={{color:'#1E90FF'}}>■ BLUE: Entropy (Background State)</li>
-                <li style={{color:'#FF4500'}}>■ RED: Dissonance (Counter-Flow Detected)</li>
+                <li style={{color:'#FFD700'}}>■ GOLD: Energy / Convergence</li>
+                <li style={{color:'#1E90FF'}}>■ BLUE: Calm / Low Intensity</li>
+                <li style={{color:'#FF4500'}}>■ RED: Turbulence / Divergence</li>
               </ul>
-              <p>Move the mouse in smooth, rhythmic motions that match the shifting characters.</p>
+              <p>Move your cursor to subtly influence the field. Or simply observe.</p>
+              <p style={{fontSize: '11px', color: '#666', marginTop: '16px'}}>This is a space for contemplation, not competition.</p>
             </div>
             <button style={styles.closeBtn} onClick={() => setShowDisclaimer(false)}>
-              [ BEGIN ASSESSMENT ]
+              [ ENTER ]
             </button>
           </div>
         </div>
@@ -453,7 +461,7 @@ window.addEventListener('message', (e) => {
       {showPrompt && (
         <div style={styles.modalOverlay} onClick={() => setShowPrompt(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>:: TEST SPECIFICATION ::</div>
+            <div style={styles.modalHeader}>:: AESTHETIC VISION ::</div>
             <div style={styles.promptBox}>
               {PROMPTS[activeModel as keyof typeof PROMPTS]}
             </div>
@@ -466,16 +474,18 @@ window.addEventListener('message', (e) => {
       {showRemix && (
         <div style={styles.modalOverlay} onClick={() => setShowRemix(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>:: VARIABLE ADJUSTMENT ::</div>
-            
+            <div style={styles.modalHeader}>:: TRANSFORM EXPERIENCE ::</div>
+
             {[
-                {label: 'High Turbulance', icon: '~', desc: 'Increase noise field frequency.'},
-                {label: 'Strict Tolerance', icon: '!', desc: 'Narrow the alignment success window.'},
-                {label: 'Invert Field', icon: 'X', desc: 'Reverse vector flow direction.'}
+                {label: 'Increase Turbulence', icon: '~', desc: 'Add chaotic energy to the flow field.'},
+                {label: 'Slow Motion', icon: '∞', desc: 'Reduce speed for deeper contemplation.'},
+                {label: 'Invert Flow', icon: '↔', desc: 'Reverse the direction of movement.'},
+                {label: 'Add Particles', icon: '·', desc: 'Introduce drifting particle elements.'},
+                {label: 'Pulse Rhythm', icon: '♥', desc: 'Create breathing, rhythmic patterns.'}
             ].map((item, i) => (
-               <div 
+               <div
                 key={item.label}
-                style={styles.remixItem} 
+                style={styles.remixItem}
                 onMouseEnter={e => e.currentTarget.style.background = '#222'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 onClick={() => handleRemixAction(item.label)}
@@ -488,7 +498,7 @@ window.addEventListener('message', (e) => {
               </div>
             ))}
 
-            <button style={styles.closeBtn} onClick={() => setShowRemix(false)}>[ ABORT ]</button>
+            <button style={styles.closeBtn} onClick={() => setShowRemix(false)}>[ CLOSE ]</button>
           </div>
         </div>
       )}
