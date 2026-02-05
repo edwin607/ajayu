@@ -14,6 +14,11 @@
             color: #ccffcc;
             font-family: 'Share Tech Mono', monospace;
             cursor: crosshair;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            overscroll-behavior: none;
         }
         #ui-layer {
             position: absolute;
@@ -36,6 +41,7 @@
             border: 1px solid #333;
             padding: 10px;
             width: 280px;
+            max-width: calc(100vw - 40px);
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -203,6 +209,8 @@
             createGrid();
 
             window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('touchstart', onTouchStart, { passive: false });
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
             window.addEventListener('resize', onResize);
 
             animate();
@@ -234,6 +242,20 @@
             // Normalized Device Coordinates (-1 to +1)
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onTouchMove(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onTouchStart(event) {
+            const touch = event.touches[0];
+            mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+            prevMouse.copy(mouse);
         }
 
         function updateMetrics(alignment) {

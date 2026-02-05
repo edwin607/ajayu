@@ -11,6 +11,11 @@
             background-color: #000;
             color: #fff;
             font-family: monospace;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            overscroll-behavior: none;
         }
         #hud {
             position: absolute;
@@ -43,6 +48,45 @@
             padding: 20px 0;
             z-index: 20;
         }
+        #touch-zone {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            z-index: 15;
+            touch-action: none;
+        }
+        #touch-knob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            margin: -20px 0 0 -20px;
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+        }
+        #touch-hint {
+            display: none;
+            position: absolute;
+            bottom: 150px;
+            left: 20px;
+            font-size: 10px;
+            color: #555;
+            z-index: 15;
+        }
+        @media (pointer: coarse) {
+            #touch-zone { display: block; }
+            #touch-hint { display: block; }
+        }
+        #hud {
+            max-width: calc(100vw - 40px);
+        }
     </style>
 </head>
 <body>
@@ -57,10 +101,13 @@
         </div>
     </div>
     
+    <div id="touch-zone"><div id="touch-knob"></div></div>
+    <div id="touch-hint">DRAG TO MOVE</div>
+
     <div id="center-msg">
         <h1 id="end-title">IMBALANCE DETECTED</h1>
         <p id="end-reason">...</p>
-        <button onclick="location.reload()" style="background:#000; color:#fff; border:1px solid #fff; padding:10px; cursor:pointer;">MEDITATE AGAIN</button>
+        <button onclick="location.reload()" style="background:#000; color:#fff; border:1px solid #fff; padding:14px 20px; cursor:pointer; font-size:14px; min-height:48px;">MEDITATE AGAIN</button>
     </div>
 
     <script type="importmap">
@@ -123,6 +170,50 @@
             window.addEventListener('keydown', e => keys[e.key] = true);
             window.addEventListener('keyup', e => keys[e.key] = false);
             window.addEventListener('resize', onResize);
+
+            // Touch joystick controls
+            const touchZone = document.getElementById('touch-zone');
+            const touchKnob = document.getElementById('touch-knob');
+            let touchActive = false;
+            let touchCenterX = 0, touchCenterY = 0;
+
+            touchZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchActive = true;
+                const rect = touchZone.getBoundingClientRect();
+                touchCenterX = rect.left + rect.width / 2;
+                touchCenterY = rect.top + rect.height / 2;
+            }, { passive: false });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!touchActive) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const dx = touch.clientX - touchCenterX;
+                const dy = touch.clientY - touchCenterY;
+                const maxDist = 40;
+                const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+                const angle = Math.atan2(dy, dx);
+                const clampedX = Math.cos(angle) * dist;
+                const clampedY = Math.sin(angle) * dist;
+
+                touchKnob.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+
+                const threshold = 10;
+                keys.ArrowLeft = dx < -threshold;
+                keys.ArrowRight = dx > threshold;
+                keys.ArrowUp = dy < -threshold;
+                keys.ArrowDown = dy > threshold;
+            }, { passive: false });
+
+            window.addEventListener('touchend', (e) => {
+                touchActive = false;
+                touchKnob.style.transform = 'translate(0, 0)';
+                keys.ArrowLeft = false;
+                keys.ArrowRight = false;
+                keys.ArrowUp = false;
+                keys.ArrowDown = false;
+            });
             
             updateHUD();
             animate();

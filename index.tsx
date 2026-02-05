@@ -19,14 +19,16 @@ const styles = {
     background: '#000',
     color: '#ccc',
     overflow: 'hidden',
-    fontFamily: "'Courier New', Courier, monospace", // TUI Font
+    fontFamily: "'Courier New', Courier, monospace",
     fontSize: '14px',
   },
   header: {
     flexShrink: 0,
     display: 'flex',
+    flexWrap: 'wrap' as const,
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: '6px',
     padding: '8px 12px',
     background: '#000',
     borderBottom: '1px solid #333',
@@ -36,8 +38,9 @@ const styles = {
   headerTitle: {
     fontWeight: 'bold',
     letterSpacing: '2px',
-    marginRight: '20px',
+    marginRight: '12px',
     color: '#fff',
+    fontSize: '13px',
   },
   gameWrapper: {
     flex: 1,
@@ -56,13 +59,14 @@ const styles = {
   },
   buttonGroup: {
     display: 'flex',
-    gap: '12px',
+    gap: '8px',
+    flexWrap: 'wrap' as const,
   },
   button: (active: boolean) => ({
     background: active ? '#ccc' : '#000',
     color: active ? '#000' : '#ccc',
     border: '1px solid #ccc',
-    padding: '4px 10px',
+    padding: '8px 12px',
     fontSize: '12px',
     cursor: 'pointer',
     outline: 'none',
@@ -70,6 +74,10 @@ const styles = {
     textTransform: 'uppercase' as const,
     boxShadow: active ? 'none' : '2px 2px 0px #333',
     transform: active ? 'translate(1px, 1px)' : 'none',
+    minHeight: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    WebkitTapHighlightColor: 'transparent',
   }),
   modalOverlay: {
     position: 'absolute' as const,
@@ -83,18 +91,24 @@ const styles = {
     justifyContent: 'center',
     pointerEvents: 'auto' as const,
     zIndex: 50,
+    padding: '16px',
+    boxSizing: 'border-box' as const,
+    overflow: 'auto',
   },
   modal: {
     background: '#000',
-    border: '1px double #ccc', // Double border for TUI feel
-    padding: '24px',
+    border: '1px double #ccc',
+    padding: '20px',
     width: '520px',
-    maxWidth: '90%',
+    maxWidth: '100%',
+    maxHeight: '90vh',
+    overflow: 'auto',
     color: '#ccc',
     boxShadow: '10px 10px 0px #222',
+    boxSizing: 'border-box' as const,
   },
   modalHeader: {
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: 'bold' as const,
     marginBottom: '16px',
     borderBottom: '1px dashed #666',
@@ -113,11 +127,13 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
-    padding: '8px',
+    padding: '12px 8px',
     border: '1px solid transparent',
     marginBottom: '8px',
     cursor: 'pointer',
     fontFamily: 'inherit',
+    minHeight: '48px',
+    WebkitTapHighlightColor: 'transparent',
   },
   remixIcon: {
     fontSize: '16px',
@@ -126,7 +142,7 @@ const styles = {
   },
   closeBtn: {
     width: '100%',
-    padding: '12px',
+    padding: '14px',
     marginTop: '16px',
     background: '#000',
     color: '#fff',
@@ -135,6 +151,9 @@ const styles = {
     fontFamily: 'inherit',
     textTransform: 'uppercase' as const,
     fontWeight: 'bold' as const,
+    fontSize: '14px',
+    minHeight: '48px',
+    WebkitTapHighlightColor: 'transparent',
   },
   promptBox: {
     background: '#111',
@@ -147,6 +166,7 @@ const styles = {
     maxHeight: '300px',
     overflow: 'auto',
     whiteSpace: 'pre-wrap' as const,
+    WebkitOverflowScrolling: 'touch' as const,
   },
   loadingContainer: {
     position: 'absolute' as const,
@@ -355,43 +375,50 @@ window.addEventListener('message', (e) => {
     <div style={styles.container}>
       <style>{`
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { touch-action: manipulation; overscroll-behavior: none; }
         ::-webkit-scrollbar { width: 8px; background: #000; }
         ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #555; }
+        @media (max-width: 600px) {
+          .header-nav { flex-direction: column; align-items: stretch !important; width: 100%; }
+          .header-left { width: 100%; justify-content: center !important; }
+          .header-right { width: 100%; justify-content: center !important; }
+          .header-title { text-align: center; margin-right: 0 !important; margin-bottom: 4px; width: 100%; }
+        }
       `}</style>
 
       {/* Header */}
-      <div style={styles.header}>
-        <div style={{display:'flex', alignItems:'center'}}>
-           <div style={styles.headerTitle}>COGNITIVE LABS</div>
+      <div style={styles.header} className="header-nav">
+        <div className="header-left" style={{display:'flex', alignItems:'center', flexWrap: 'wrap' as const, gap: '6px'}}>
+           <div style={styles.headerTitle} className="header-title">COGNITIVE LABS</div>
            <div style={styles.buttonGroup}>
-            <button 
+            <button
                 style={styles.button(activeModel === 'gemini2p5')}
                 onClick={() => switchModel('gemini2p5')}
             >
-                [ LEGACY: DUALISM ]
+                [ DUALISM ]
             </button>
-            <button 
+            <button
                 style={styles.button(activeModel === 'gemini3')}
                 onClick={() => switchModel('gemini3')}
             >
-                [ TEST: FLOW_SYNC ]
+                [ FLOW_SYNC ]
             </button>
             </div>
         </div>
 
-        <div style={styles.buttonGroup}>
-          <button 
+        <div className="header-right" style={styles.buttonGroup}>
+          <button
             style={styles.button(showPrompt)}
             onClick={() => setShowPrompt(true)}
           >
             [ SPECS ]
           </button>
-          <button 
+          <button
             style={styles.button(showRemix)}
             onClick={() => setShowRemix(true)}
           >
-            [ MODIFY_VARS ]
+            [ MODIFY ]
           </button>
         </div>
       </div>
@@ -433,14 +460,14 @@ window.addEventListener('message', (e) => {
             <div style={styles.modalHeader}>:: SUBJECT INSTRUCTION ::</div>
             <div style={styles.modalSub}>
               <p><strong>[ TEST ]</strong> Visuomotor Pattern Synchronization.</p>
-              <p><strong>[ OBJECTIVE ]</strong> Align your cursor movement with the visual flow field.</p>
+              <p><strong>[ OBJECTIVE ]</strong> Align your cursor or finger movement with the visual flow field.</p>
               <p><strong>[ INDICATORS ]</strong></p>
               <ul style={{listStyleType: 'none', paddingLeft: '10px'}}>
                 <li style={{color:'#FFD700'}}>■ GOLD: High Coherence (Sync Achieved)</li>
                 <li style={{color:'#1E90FF'}}>■ BLUE: Entropy (Background State)</li>
                 <li style={{color:'#FF4500'}}>■ RED: Dissonance (Counter-Flow Detected)</li>
               </ul>
-              <p>Move the mouse in smooth, rhythmic motions that match the shifting characters.</p>
+              <p>Move the mouse or drag your finger in smooth, rhythmic motions that match the shifting characters.</p>
             </div>
             <button style={styles.closeBtn} onClick={() => setShowDisclaimer(false)}>
               [ BEGIN ASSESSMENT ]
