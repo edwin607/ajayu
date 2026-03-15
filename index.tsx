@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
+import { BrandGovernanceTool } from './BrandGovernanceTool';
 
 const styles = {
   container: {
@@ -208,8 +209,10 @@ A tool to measure Visuomotor Synchronization using Optic Flow fields.
 `
 };
 
+type Mode = 'gemini3' | 'gemini2p5' | 'brand-governance';
+
 function App() {
-  const [activeModel, setActiveModel] = useState('gemini3'); 
+  const [activeModel, setActiveModel] = useState<Mode>('gemini3');
   const [showPrompt, setShowPrompt] = useState(false);
   const [showRemix, setShowRemix] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
@@ -221,8 +224,12 @@ function App() {
   const htmlCache = useRef<{ [key: string]: string }>({});
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const switchModel = (model: string) => {
+  const switchModel = (model: Mode) => {
     if (activeModel === model) return;
+    if (model === 'brand-governance') {
+      setActiveModel(model);
+      return;
+    }
     setGameHtml(null);
     setIsLoading(true);
     setLoadingText(model === 'gemini3' ? 'CALIBRATING SENSORS...' : 'LOADING LEGACY MODULE...');
@@ -237,6 +244,7 @@ function App() {
   }, [showDisclaimer]);
 
   useEffect(() => {
+    if (activeModel === 'brand-governance') return;
     let isMounted = true;
     const url = activeModel === 'gemini3' ? './init/gemini3.html' : './init/gemini2p5.html';
 
@@ -371,58 +379,72 @@ window.addEventListener('message', (e) => {
             >
                 [ LEGACY: DUALISM ]
             </button>
-            <button 
+            <button
                 style={styles.button(activeModel === 'gemini3')}
                 onClick={() => switchModel('gemini3')}
             >
                 [ TEST: FLOW_SYNC ]
             </button>
+            <button
+                style={styles.button(activeModel === 'brand-governance')}
+                onClick={() => switchModel('brand-governance')}
+            >
+                [ BRAND: GOVERNANCE ]
+            </button>
             </div>
         </div>
 
-        <div style={styles.buttonGroup}>
-          <button 
-            style={styles.button(showPrompt)}
-            onClick={() => setShowPrompt(true)}
-          >
-            [ SPECS ]
-          </button>
-          <button 
-            style={styles.button(showRemix)}
-            onClick={() => setShowRemix(true)}
-          >
-            [ MODIFY_VARS ]
-          </button>
-        </div>
+        {activeModel !== 'brand-governance' && (
+          <div style={styles.buttonGroup}>
+            <button
+              style={styles.button(showPrompt)}
+              onClick={() => setShowPrompt(true)}
+            >
+              [ SPECS ]
+            </button>
+            <button
+              style={styles.button(showRemix)}
+              onClick={() => setShowRemix(true)}
+            >
+              [ MODIFY_VARS ]
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Main Game Area */}
+      {/* Main Content Area */}
       <div style={styles.gameWrapper}>
-        {(isLoading || !gameHtml) && (
-          <div style={styles.loadingContainer}>
-            <div style={styles.asciiLoader}>
+        {activeModel === 'brand-governance' ? (
+          <BrandGovernanceTool />
+        ) : (
+          <>
+            {(isLoading || !gameHtml) && (
+              <div style={styles.loadingContainer}>
+                <div style={styles.asciiLoader}>
 {`
- [ LOADING TEST ASSETS ] 
+ [ LOADING TEST ASSETS ]
    ...    ...    ...
   .   .  .   .  .   .
   |---|  |---|  |---|
   '   '  '   '  '   '
 `}
-            </div>
-            <div style={{animation: 'blink 1s step-end infinite'}}>{loadingText}</div>
-          </div>
-        )}
+                </div>
+                <div style={{animation: 'blink 1s step-end infinite'}}>{loadingText}</div>
+              </div>
+            )}
 
-        {!isLoading && gameHtml && (
-          <iframe 
-            ref={iframeRef}
-            key={activeModel + gameHtml.length}
-            srcDoc={gameHtml}
-            style={styles.iframe} 
-            title="Game Canvas"
-            sandbox="allow-scripts allow-pointer-lock allow-same-origin allow-forms"
-            onLoad={handleIFrameLoad}
-          />
+            {!isLoading && gameHtml && (
+              <iframe
+                ref={iframeRef}
+                key={activeModel + gameHtml.length}
+                srcDoc={gameHtml}
+                style={styles.iframe}
+                title="Game Canvas"
+                sandbox="allow-scripts allow-pointer-lock allow-same-origin allow-forms"
+                onLoad={handleIFrameLoad}
+              />
+            )}
+          </>
         )}
       </div>
 
